@@ -111,7 +111,7 @@ def fase1():
                 sys.exit()
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 # Pausar o jogo
-                acao_pause = pause_menu(tela, pixel_font)
+                acao_pause = pause_menu(tela, pixel_font, fase_numero =1)
                 if acao_pause == "menu":
                     return "menu"
 
@@ -205,7 +205,7 @@ def fase1():
 
         # Verifica se jogador entrou na porta para ir pra fase 2
         if porta_ativa and player.colliderect(porta):
-            retorno = fase2(status)
+            retorno = fase2()
             if retorno == "menu":
                 return "menu"
 

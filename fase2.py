@@ -86,7 +86,7 @@ def fase2():
                 sys.exit()  # Fecha a aplicação
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 # Abre o menu de pausa ao pressionar a tecla ESC
-                acao_pause = pause_menu(tela, pixel_font)  # Chama o menu de pausa
+                acao_pause = pause_menu(tela, pixel_font, fase_numero =2)  # Chama o menu de pausa
                 if acao_pause == "menu":
                     return "menu"  # Se o jogador escolheu sair para o menu principal
                 # Se for "resume", continua o jogo normalmente
