@@ -4,6 +4,8 @@ import sys  # Importa a biblioteca sys para lidar com o sistema operacional
 from jogador import criar_jogador, mover_jogador, checar_interacoes  # Funções personalizadas para o jogador
 from fase4 import fase4 
 from pause_menu import pause_menu  # Função personalizada para o menu de pausa
+from game_over import game_over 
+from status_jogador import StatusJogador  # Importa a classe de status
 
 # Função que gera uma equação de porcentagem simples, como "x% de y"
 def gerar_equacao_porcentagem():
@@ -41,6 +43,9 @@ def fase3():
     # Cria o jogador com as dimensões do mundo
     player, player_speed = criar_jogador(WORLD_WIDTH, WORLD_HEIGHT)
     jogador_carregando = None  # Inicializa a variável para armazenar o item que o jogador está carregando
+
+    # Inicializa o status do jogador (vidas e pontos)
+    status = StatusJogador()
 
     # Gera duas equações (porcentagem e regra de 3)
     equacoes = [gerar_equacao_porcentagem(), gerar_equacao_regra_de_3()]
@@ -87,7 +92,6 @@ def fase3():
     porta = pygame.Rect(2400, 1200, 100, 100)  # Define a posição e tamanho da porta para avançar para a próxima fase
     porta_ativa = False  # Define a porta como desativada inicialmente
 
-    pontos = 0  # Inicializa os pontos do jogador
     clock = pygame.time.Clock()  # Cria o objeto clock para controlar a taxa de atualização
     running = True  # Variável que controla o loop do jogo
 
@@ -133,12 +137,20 @@ def fase3():
             for eq in equacoes:
                 if player.colliderect(eq["rect"]) and not eq["resolvida"]:
                     if round(jogador_carregando["valor"], 2) == round(eq["resposta"], 2):  # Verifica se a resposta está correta
-                        pontos += 1  # Incrementa os pontos
+                        status.ganhar_pontos(100)  # Chama a função para ganhar pontos
                         eq["resolvida"] = True  # Marca a equação como resolvida
+                        status.ganhar_pontos(400)
                         jogador_carregando = None  # Remove o item carregado
                     else:
-                        jogador_carregando = None  # Se a resposta estiver errada, o jogador solta o item
-                    break
+                        status.perder_vida()  # <-- Novo: perde vida ao errar
+                        if status.game_over():  # <-- Novo: verifica fim de jogo
+                            acao = game_over(tela, pixel_font)
+                            if acao == "reiniciar":
+                                return fase3()
+                            elif acao == "sair":
+                                return "menu"
+                    jogador_carregando = None  # Se a resposta estiver errada, o jogador solta o item
+                    
 
         # Desenha as equações na tela
         for eq in equacoes:
@@ -176,7 +188,7 @@ def fase3():
             )
             tela.blit(texto_item, (20, 660))  # Exibe o valor do item que o jogador está carregando
 
-        if pontos == len(equacoes):
+        if all(eq["resolvida"] for eq in equacoes):
             porta_ativa = True  # Ativa a porta se o jogador tiver resolvido todas as equações
 
         if porta_ativa:
@@ -190,8 +202,8 @@ def fase3():
         if porta_ativa and player.colliderect(porta):
             fase4()  # Avança para a próxima fase se o jogador colidir com a porta
 
-        texto_pontos = pixel_font.render(f"Pontos: {pontos}", True, (255, 255, 255))
-        tela.blit(texto_pontos, (1080, 20))  # Exibe os pontos do jogador
+        # Exibe a pontuação do jogador
+        status.renderizar(tela, pixel_font)
 
         pygame.display.flip()  # Atualiza a tela
         clock.tick(60)  # Define o FPS para 60

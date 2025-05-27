@@ -3,7 +3,9 @@ import sys
 import random
 from jogador import criar_jogador, mover_jogador, checar_interacoes
 from fase2 import fase2  # Importa a próxima fase
-from pause_menu import pause_menu  # Importa a tela de pause
+from pause_menu import pause_menu  # Importa a tela de pause 
+from game_over import game_over   
+from status_jogador import StatusJogador  # Importa a classe de status
 
 # Funções para gerar diferentes tipos de equações matemáticas
 def gerar_equacao_soma():
@@ -56,6 +58,9 @@ def fase1():
     WORLD_WIDTH = 2560
     WORLD_HEIGHT = 1440
 
+    # Inicializa o status do jogador (vidas e pontos)
+    status = StatusJogador()
+
     # Cria jogador
     player, player_speed = criar_jogador(WORLD_WIDTH, WORLD_HEIGHT)
     jogador_carregando = None  # Guarda item carregado (resposta)
@@ -93,7 +98,6 @@ def fase1():
     porta = pygame.Rect(2400, 1200, 100, 100)  # Porta de saída da fase
     porta_ativa = False  # Só aparece quando todas as equações forem resolvidas
 
-    pontos = 0
     clock = pygame.time.Clock()
     running = True
 
@@ -107,8 +111,7 @@ def fase1():
                 sys.exit()
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 # Pausar o jogo
-                fase_atual = 1
-                acao_pause = pause_menu(tela, pixel_font, fase_atual)
+                acao_pause = pause_menu(tela, pixel_font)
                 if acao_pause == "menu":
                     return "menu"
 
@@ -141,12 +144,22 @@ def fase1():
             for eq in equacoes:
                 if player.colliderect(eq["rect"]) and not eq["resolvida"]:
                     if jogador_carregando["valor"] == eq["resposta"]:
-                        pontos += 1
+                        status.ganhar_pontos(100)  # Chama a função para ganhar pontos
                         eq["resolvida"] = True
+                        status.ganhar_pontos(150)
                         jogador_carregando = None
                     else:
+                        status.perder_vida()  # Chama a função para perder vida
                         jogador_carregando = None
-                    break
+
+                        if status.game_over():  # <-- Novo: verifica fim de jogo
+                           acao = game_over(tela, pixel_font)
+                           if acao == "reiniciar":
+                               return fase1()
+                           elif acao == "sair":
+                               return "menu"
+                           
+                    jogador_carregando = None
 
         # Desenha equações
         for eq in equacoes:
@@ -178,7 +191,7 @@ def fase1():
             tela.blit(texto_item, (20, 660))
 
         # Ativa a porta quando todas forem resolvidas
-        if pontos == len(equacoes):
+        if all(eq["resolvida"] for eq in equacoes):
             porta_ativa = True
 
         # Desenha a porta (se ativa)
@@ -192,13 +205,12 @@ def fase1():
 
         # Verifica se jogador entrou na porta para ir pra fase 2
         if porta_ativa and player.colliderect(porta):
-            retorno = fase2()
+            retorno = fase2(status)
             if retorno == "menu":
                 return "menu"
 
-        # Exibe pontuação
-        texto_pontos = pixel_font.render(f"Pontos: {pontos}", True, (255, 255, 255))
-        tela.blit(texto_pontos, (1080, 20))
+        # Novo: exibe vidas e pontos
+        status.renderizar(tela, pixel_font)
 
         # Atualiza tela
         pygame.display.flip()

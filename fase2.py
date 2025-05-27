@@ -4,6 +4,8 @@ import random  # Importa a biblioteca random para gerar números aleatórios
 from jogador import criar_jogador, mover_jogador, checar_interacoes  # Funções para criar e mover o jogador, e verificar interações
 from fase3 import fase3  # Importa a função da próxima fase
 from pause_menu import pause_menu  # Importa a função do menu de pausa
+from game_over import game_over 
+from status_jogador import StatusJogador  # Importa a classe de status
 
 # Função que gera uma equação de soma ou subtração com números inteiros aleatórios
 def gerar_equacao_inteiros():
@@ -37,6 +39,9 @@ def fase2():
     player, player_speed = criar_jogador(WORLD_WIDTH, WORLD_HEIGHT)  # Cria o jogador e define sua velocidade
     jogador_carregando = None  # Variável que vai armazenar o item que o jogador está carregando
 
+    # Inicializa o status do jogador (vidas e pontos)
+    status = StatusJogador()
+
     # Cria 3 equações e armazena elas em uma lista
     equacoes = [gerar_equacao_inteiros() for _ in range(3)]  
     # Para cada equação, define uma posição aleatória na tela e se a equação já foi resolvida
@@ -67,7 +72,6 @@ def fase2():
     porta = pygame.Rect(2400, 1200, 100, 100)  # Cria a "porta" de saída para a próxima fase
     porta_ativa = False  # Inicialmente, a porta não está ativa
 
-    pontos = 0  # Inicializa a pontuação do jogador
     clock = pygame.time.Clock()  # Controla a taxa de atualização do jogo (FPS)
     running = True  # Variável que controla o loop principal do jogo
 
@@ -82,8 +86,7 @@ def fase2():
                 sys.exit()  # Fecha a aplicação
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 # Abre o menu de pausa ao pressionar a tecla ESC
-                fase_atual = 2  # Define que estamos na fase 2
-                acao_pause = pause_menu(tela, pixel_font, fase_atual)  # Chama o menu de pausa
+                acao_pause = pause_menu(tela, pixel_font)  # Chama o menu de pausa
                 if acao_pause == "menu":
                     return "menu"  # Se o jogador escolheu sair para o menu principal
                 # Se for "resume", continua o jogo normalmente
@@ -117,12 +120,20 @@ def fase2():
             for eq in equacoes:
                 if player.colliderect(eq["rect"]) and not eq["resolvida"]:
                     if jogador_carregando["valor"] == eq["resposta"]:
-                        pontos += 1  # Aumenta os pontos do jogador
+                        status.ganhar_pontos(100)  # Chama a função para ganhar pontos
                         eq["resolvida"] = True  # Marca a equação como resolvida
+                        status.ganhar_pontos(250)
                         jogador_carregando = None  # Reseta o item carregado
                     else:
-                        jogador_carregando = None  # Se a resposta estiver errada, o jogador solta o item
-                    break
+                        status.perder_vida()  # <-- Novo: perde vida ao errar
+                        if status.game_over():  # <-- Novo: verifica fim de jogo
+                            acao = game_over(tela, pixel_font)
+                            if acao == "reiniciar":
+                                return fase2()
+                            elif acao == "sair":
+                                return "menu"
+
+                    jogador_carregando = None
 
         # Desenha as equações na tela, com cores diferentes dependendo se foram resolvidas ou não
         for eq in equacoes:
@@ -154,7 +165,7 @@ def fase2():
             tela.blit(texto_item, (20, 660))
 
         # Se todas as equações foram resolvidas, ativa a porta de saída
-        if pontos == len(equacoes):
+        if all(eq["resolvida"] for eq in equacoes):
             porta_ativa = True
 
         # Desenha a porta de saída, se estiver ativa
@@ -171,8 +182,7 @@ def fase2():
             fase3()  # Chama a próxima fase (fase 3)
 
         # Exibe a pontuação do jogador
-        texto_pontos = pixel_font.render(f"Pontos: {pontos}", True, (255, 255, 255))
-        tela.blit(texto_pontos, (1080, 20))
+        status.renderizar(tela, pixel_font)
 
         # Atualiza a tela a cada frame
         pygame.display.flip()

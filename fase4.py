@@ -4,6 +4,8 @@ import random
 from jogador import criar_jogador, mover_jogador, checar_interacoes
 from fase5 import fase5
 from pause_menu import pause_menu 
+from game_over import game_over 
+from status_jogador import StatusJogador  # Importa a classe de status
 
 # Função que gera uma equação de 1º grau no formato "ax + b = resultado"
 def gerar_equacao_1_grau():
@@ -29,6 +31,9 @@ def fase4():
     WORLD_WIDTH, WORLD_HEIGHT = 2560, 1440  # Dimensões do mundo
     player, player_speed = criar_jogador(WORLD_WIDTH, WORLD_HEIGHT)  # Criar jogador e sua velocidade
     jogador_carregando = None  # Variável que armazena o item que o jogador está carregando
+
+    # Inicializa o status do jogador (vidas e pontos)
+    status = StatusJogador()
 
     equacao = gerar_equacao_1_grau()  # Gerar uma equação
     equacao["rect"] = pygame.Rect(random.randint(100, WORLD_WIDTH - 100),
@@ -103,8 +108,17 @@ def fase4():
         if jogador_carregando and not equacao["resolvida"]:
             if player.colliderect(equacao["rect"]):
                 if jogador_carregando["valor"] == equacao["resposta"]:
-                    pontos += 1  # Se acertar a resposta, ganha pontos
+                    status.ganhar_pontos(100)  # Chama a função para ganhar pontos
                     equacao["resolvida"] = True
+                    status.ganhar_pontos(900)
+                else:
+                    status.perder_vida()  # <-- Novo: perde vida ao errar
+                    if status.game_over():  # <-- Novo: verifica fim de jogo
+                        acao = game_over(tela, pixel_font)
+                        if acao == "reiniciar":
+                            return fase5()
+                        elif acao == "sair":
+                            return "menu" 
                 jogador_carregando = None
 
         # Define a cor da equação, dependendo se foi resolvida ou não
@@ -152,8 +166,7 @@ def fase4():
                 fase5()  # Chama a próxima fase (fase 5)
 
         # Exibe a pontuação
-        texto_pontos = pixel_font.render(f"Pontos: {pontos}", True, (255, 255, 255))
-        tela.blit(texto_pontos, (1080, 20))
+        status.renderizar(tela, pixel_font)
 
         pygame.display.flip()  # Atualiza a tela
         clock.tick(60)  # Controla a taxa de quadros por segundo (FPS)
