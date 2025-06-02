@@ -3,7 +3,7 @@ import pygame
 import sys
 import random
 import math
-from jogador import criar_jogador, mover_jogador, checar_interacoes
+from jogador import Jogador
 from pause_menu import pause_menu
 from fim_de_jogo import tela_final
 from game_over import game_over
@@ -43,7 +43,7 @@ def fase5():
     status = StatusJogador()
 
     WORLD_WIDTH, WORLD_HEIGHT = 2560, 1440
-    player, player_speed = criar_jogador(WORLD_WIDTH, WORLD_HEIGHT)
+    jogador = Jogador (WORLD_WIDTH, WORLD_HEIGHT)
     jogador_carregando = None
 
     # Gera a equação do segundo grau
@@ -89,31 +89,32 @@ def fase5():
                 if acao_pause == "menu":
                     return "menu"
 
-        keys = pygame.key.get_pressed()
-        player = mover_jogador(player, player_speed, keys, WORLD_WIDTH, WORLD_HEIGHT)
-        coletar, dropar = checar_interacoes(keys)
+        keys = pygame.key.get_pressed()  # Captura as teclas pressionadas
+        jogador.update(keys, WORLD_WIDTH, WORLD_HEIGHT)  # Atualiza o jogador
 
-        offset_x = player.x - 1280 // 2 + player.width // 2
-        offset_y = player.y - 720 // 2 + player.height // 2
+        coletar, dropar = jogador.checar_interacoes(keys)
+
+        offset_x = jogador.rect.x - 1280 // 2 + jogador.rect.width // 2
+        offset_y = jogador.rect.y - 720 // 2 + jogador.rect.height // 2
 
         # Coleta de item
         if jogador_carregando is None:
             for resposta in respostas:
-                if player.colliderect(resposta["rect"]) and coletar:
+                if jogador.hitbox.colliderect(resposta["rect"]) and coletar:
                     jogador_carregando = resposta
                     respostas.remove(resposta)
                     break
 
         # Dropar item
         if jogador_carregando and dropar:
-            jogador_carregando["rect"].x = player.x + player.width // 2 - jogador_carregando["rect"].width // 2
-            jogador_carregando["rect"].y = player.y + player.height // 2 - jogador_carregando["rect"].height // 2
+            jogador_carregando["rect"].x = jogador.rect.x + jogador.rect.width // 2 - jogador_carregando["rect"].width // 2
+            jogador_carregando["rect"].y = jogador.rect.y + jogador.rect.height // 2 - jogador_carregando["rect"].height // 2
             respostas.append(jogador_carregando)
             jogador_carregando = None
 
         # Interação com a equação
         if jogador_carregando and not equacao["resolvida"]:
-            if player.colliderect(equacao["rect"]):
+            if jogador.hitbox.colliderect(equacao["rect"]):
                 if jogador_carregando["valor"] in equacao["respostas"]:
                     if jogador_carregando["valor"] not in respostas_corretas_coletadas:
                         respostas_corretas_coletadas.append(jogador_carregando["valor"])
@@ -158,8 +159,12 @@ def fase5():
             texto = pixel_font.render(str(resposta["valor"]), True, (0, 0, 0))
             tela.blit(texto, (rect.x + 5, rect.y + 5))
 
-        player_rect_tela = pygame.Rect(1280 // 2 - player.width // 2, 720 // 2 - player.height // 2, player.width, player.height)
-        pygame.draw.rect(tela, (0, 200, 255), player_rect_tela)
+        jogador_tela_rect = jogador.rect.copy()
+        jogador_tela_rect.x -= offset_x
+        jogador_tela_rect.y -= offset_y  # Desenha o jogador
+        # Desenha o jogador na tela
+        tela.blit(jogador.image, jogador_tela_rect) 
+
 
         if jogador_carregando:
             texto_item = pixel_font.render(f"Carregando: {jogador_carregando['valor']}", True, (255, 255, 255))
@@ -173,7 +178,7 @@ def fase5():
             texto_porta = pixel_font.render("Fase Completa!", True, (0, 0, 0))
             tela.blit(texto_porta, (porta_rect_tela.x + 5, porta_rect_tela.y + 35))
 
-            if player.colliderect(porta):
+            if jogador.rect.colliderect(porta):
                 resultado = tela_final(tela, pixel_font)
                 return resultado
 

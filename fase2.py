@@ -1,7 +1,7 @@
 import pygame  # Importa a biblioteca pygame para criar o jogo
 import sys  # Importa o módulo sys, usado para controlar a execução do jogo, como fechar o programa
 import random  # Importa a biblioteca random para gerar números aleatórios
-from jogador import criar_jogador, mover_jogador, checar_interacoes  # Funções para criar e mover o jogador, e verificar interações
+from jogador import Jogador  # Funções para criar e mover o jogador, e verificar interações
 from fase3 import fase3  # Importa a função da próxima fase
 from pause_menu import pause_menu  # Importa a função do menu de pausa
 from game_over import game_over 
@@ -36,7 +36,7 @@ def fase2():
     WORLD_WIDTH = 2560  # Define a largura do mundo do jogo
     WORLD_HEIGHT = 1440  # Define a altura do mundo do jogo
 
-    player, player_speed = criar_jogador(WORLD_WIDTH, WORLD_HEIGHT)  # Cria o jogador e define sua velocidade
+    jogador = Jogador(WORLD_WIDTH, WORLD_HEIGHT)  # Cria o jogador e define sua velocidade
     jogador_carregando = None  # Variável que vai armazenar o item que o jogador está carregando
 
     # Inicializa o status do jogador (vidas e pontos)
@@ -93,32 +93,33 @@ def fase2():
 
         # Obtém o estado das teclas pressionadas
         keys = pygame.key.get_pressed()
-        player = mover_jogador(player, player_speed, keys, WORLD_WIDTH, WORLD_HEIGHT)  # Atualiza a posição do jogador
-        coletar, dropar = checar_interacoes(keys)  # Checa se o jogador está coletando ou soltando itens
+        jogador.update(keys, WORLD_WIDTH, WORLD_HEIGHT)  # Atualiza o jogador
+
+        coletar, dropar = jogador.checar_interacoes(keys)  # Checa interações
 
         # Calcula o deslocamento da câmera para centralizar o jogador na tela
-        offset_x = player.x - 1280 // 2 + player.width // 2
-        offset_y = player.y - 720 // 2 + player.height // 2
+        offset_x = jogador.rect.x - 1280 // 2 + jogador.rect.width // 2
+        offset_y = jogador.rect.y - 720 // 2 + jogador.rect.height // 2
 
         # Verifica se o jogador está perto de alguma resposta para coletá-la
         if jogador_carregando is None:
             for resposta in respostas:
-                if player.colliderect(resposta["rect"]) and coletar:
+                if jogador.hitbox.colliderect(resposta["rect"]) and coletar:
                     jogador_carregando = resposta  # O jogador começa a carregar a resposta
                     respostas.remove(resposta)  # Remove a resposta da tela
                     break
 
         # Verifica se o jogador está carregando um item e se ele soltar o item
         if jogador_carregando and dropar:
-            jogador_carregando["rect"].x = player.x + player.width // 2 - jogador_carregando["rect"].width // 2
-            jogador_carregando["rect"].y = player.y + player.height // 2 - jogador_carregando["rect"].height // 2
+            jogador_carregando["rect"].x = jogador.rect.x + jogador.rect.width // 2 - jogador_carregando["rect"].width // 2
+            jogador_carregando["rect"].y = jogador.rect.y + jogador.rect.height // 2 - jogador_carregando["rect"].height // 2
             respostas.append(jogador_carregando)  # Adiciona a resposta de volta na tela
             jogador_carregando = None  # Reseta a variável de jogador carregando
 
         # Verifica se o jogador está perto de uma equação e se ele tem a resposta correta
         if jogador_carregando:
             for eq in equacoes:
-                if player.colliderect(eq["rect"]) and not eq["resolvida"]:
+                if jogador.hitbox.colliderect(eq["rect"]) and not eq["resolvida"]:
                     if jogador_carregando["valor"] == eq["resposta"]:
                         status.ganhar_pontos(100)  # Chama a função para ganhar pontos
                         eq["resolvida"] = True  # Marca a equação como resolvida
@@ -155,9 +156,10 @@ def fase2():
             tela.blit(texto, (rect.x + 5, rect.y + 5))  # Desenha o valor da resposta
 
         # Desenha o jogador na tela
-        player_rect_tela = pygame.Rect(1280 // 2 - player.width // 2,
-                                       720 // 2 - player.height // 2, player.width, player.height)
-        pygame.draw.rect(tela, (0, 200, 255), player_rect_tela)  # Desenha o retângulo do jogador
+        jogador_tela_rect = jogador.rect.copy()
+        jogador_tela_rect.x -= offset_x
+        jogador_tela_rect.y -= offset_y
+        tela.blit(jogador.image, jogador_tela_rect)  
 
         # Exibe o item carregado pelo jogador, se houver
         if jogador_carregando:
@@ -178,7 +180,7 @@ def fase2():
             tela.blit(texto_porta, (porta_rect_tela.x + 10, porta_rect_tela.y + 35))
 
         # Se o jogador colidir com a porta, avança para a próxima fase
-        if porta_ativa and player.colliderect(porta):
+        if porta_ativa and jogador.rect.colliderect(porta):
             fase3()  # Chama a próxima fase (fase 3)
 
         # Exibe a pontuação do jogador

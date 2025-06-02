@@ -1,7 +1,7 @@
 import pygame
 import sys
 import random
-from jogador import criar_jogador, mover_jogador, checar_interacoes
+from jogador import Jogador
 from fase5 import fase5
 from pause_menu import pause_menu 
 from game_over import game_over 
@@ -29,8 +29,9 @@ def fase4():
         pixel_font = pygame.font.SysFont("Courier", 32)  # Se falhar, usa a fonte padrão Courier
 
     WORLD_WIDTH, WORLD_HEIGHT = 2560, 1440  # Dimensões do mundo
-    player, player_speed = criar_jogador(WORLD_WIDTH, WORLD_HEIGHT)  # Criar jogador e sua velocidade
-    jogador_carregando = None  # Variável que armazena o item que o jogador está carregando
+
+    jogador = Jogador(WORLD_WIDTH, WORLD_HEIGHT)
+    jogador_carregando = None   # Variável que armazena o item que o jogador está carregando
 
     # Inicializa o status do jogador (vidas e pontos)
     status = StatusJogador()
@@ -82,31 +83,32 @@ def fase4():
                     return "menu"  # Sai da fase para voltar ao menu principal
 
         keys = pygame.key.get_pressed()  # Obtém os teclados pressionados
-        player = mover_jogador(player, player_speed, keys, WORLD_WIDTH, WORLD_HEIGHT)  # Atualiza a posição do jogador
-        coletar, dropar = checar_interacoes(keys)  # Checa se o jogador está coletando ou dropando um item
+        jogador.update(keys, WORLD_WIDTH, WORLD_HEIGHT)  # Atualiza o jogador
+
+        coletar, dropar = jogador.checar_interacoes(keys)   # Checa se o jogador está coletando ou dropando um item
 
         # Movimentação da tela (câmera segue o jogador)
-        offset_x = player.x - 1280 // 2 + player.width // 2
-        offset_y = player.y - 720 // 2 + player.height // 2
+        offset_x = jogador.rect.x - 1280 // 2 + jogador.rect.width // 2
+        offset_y = jogador.rect.y - 720 // 2 + jogador.rect.height // 2
 
         # Verifica se o jogador está coletando um item de resposta
         if jogador_carregando is None:
             for resposta in respostas:
-                if player.colliderect(resposta["rect"]) and coletar:
+                if jogador.hitbox.colliderect(resposta["rect"]) and coletar:
                     jogador_carregando = resposta
                     respostas.remove(resposta)
                     break
 
         # Se o jogador estiver carregando um item e pressionar a tecla para dropar
         if jogador_carregando and dropar:
-            jogador_carregando["rect"].x = player.x + player.width // 2 - jogador_carregando["rect"].width // 2
-            jogador_carregando["rect"].y = player.y + player.height // 2 - jogador_carregando["rect"].height // 2
+            jogador_carregando["rect"].x = jogador.rect.x + jogador.rect.width // 2 - jogador_carregando["rect"].width // 2
+            jogador_carregando["rect"].y = jogador.rect.y + jogador.rect.height // 2 - jogador_carregando["rect"].height // 2
             respostas.append(jogador_carregando)
             jogador_carregando = None
 
         # Verifica se o jogador resolveu a equação
         if jogador_carregando and not equacao["resolvida"]:
-            if player.colliderect(equacao["rect"]):
+            if jogador.hitbox.colliderect(equacao["rect"]):
                 if jogador_carregando["valor"] == equacao["resposta"]:
                     status.ganhar_pontos(100)  # Chama a função para ganhar pontos
                     equacao["resolvida"] = True
@@ -140,9 +142,11 @@ def fase4():
             tela.blit(texto, (rect.x + 5, rect.y + 5))
 
         # Desenha o jogador na tela
-        player_rect_tela = pygame.Rect(1280 // 2 - player.width // 2,
-                                       720 // 2 - player.height // 2, player.width, player.height)
-        pygame.draw.rect(tela, (0, 200, 255), player_rect_tela)
+        jogador_tela_rect = jogador.rect.copy()
+        jogador_tela_rect.x -= offset_x
+        jogador_tela_rect.y -= offset_y  # Desenha o jogador
+        # Desenha o jogador na tela
+        tela.blit(jogador.image, jogador_tela_rect) 
 
         # Se o jogador estiver carregando um item, exibe o nome do item
         if jogador_carregando:
@@ -162,7 +166,7 @@ def fase4():
             texto_porta = pixel_font.render("Ir para próxima fase", True, (0, 0, 0))
             tela.blit(texto_porta, (porta_rect_tela.x + 5, porta_rect_tela.y + 35))
 
-            if porta_ativa and player.colliderect(porta):
+            if porta_ativa and jogador.rect.colliderect(porta):
                 fase5()  # Chama a próxima fase (fase 5)
 
         # Exibe a pontuação

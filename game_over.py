@@ -4,28 +4,26 @@ import pygame
 # Função que exibe a tela de "Game Over"
 def game_over(screen, font):
     # Loop principal da tela de Game Over (fica ativo até o jogador tomar uma decisão)
-    while True:
-        screen.fill((0, 0, 0))  # Preenche a tela com a cor preta (RGB)
+      while True:
+        screen.fill((0, 0, 0))
 
-        # Renderiza o texto "Game Over" com a cor vermelha
         texto_game_over = font.render("Game Over", True, (255, 0, 0))
+        texto_linha1 = font.render("Pressione R para reiniciar", True, (255, 255, 255))
+        texto_linha2 = font.render("ou ESC para sair", True, (255, 255, 255))
 
-        # Renderiza a instrução para o jogador (em branco)
-        texto_reiniciar = font.render("Pressione R para reiniciar ou ESC para sair", True, (255, 255, 255))
-
-        # Centraliza e desenha o texto "Game Over" na tela
         screen.blit(
             texto_game_over,
             (screen.get_width() // 2 - texto_game_over.get_width() // 2, 200)
         )
-
-        # Centraliza e desenha a instrução na tela
         screen.blit(
-            texto_reiniciar,
-            (screen.get_width() // 2 - texto_reiniciar.get_width() // 2, 300)
+            texto_linha1,
+            (screen.get_width() // 2 - texto_linha1.get_width() // 2, 440)
+        )
+        screen.blit(
+            texto_linha2,
+            (screen.get_width() // 2 - texto_linha2.get_width() // 2, 480)
         )
 
-        # Atualiza a tela com os elementos desenhados
         pygame.display.flip()
 
         # Processa os eventos do pygame (teclado, fechar janela, etc.)
