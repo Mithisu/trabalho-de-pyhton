@@ -14,12 +14,13 @@ def pause_menu(screen, Daydream, fase_numero):
 
     # Fontes
     fase_font = pygame.font.Font("assets/fonts/pixel_font.ttf", 26)
-    titulo_font = pygame.font.Font("assets/fonts/Daydream.ttf", 72)  # Título "PAUSE"
+    titulo_font = pygame.font.Font("assets/fonts/Daydream.ttf", 82)  # Título "PAUSE"
     botao_font = pygame.font.Font("assets/fonts/Daydream.ttf", 32)   # Botões
 
     width, height = screen.get_size()
 
-    button_width = 400
+    button_width = 250
+    button_width_menu = 200
     button_height = 60
 
     resume_button_rect = pygame.Rect(
@@ -28,8 +29,8 @@ def pause_menu(screen, Daydream, fase_numero):
     )
 
     menu_button_rect = pygame.Rect(
-        (width // 2 - button_width // 2, height // 2 + 130),
-        (button_width, button_height)
+        (width // 2 - button_width_menu // 2, height // 2 + 130),
+        (button_width_menu, button_height)
     )
 
     clock = pygame.time.Clock()
@@ -57,7 +58,7 @@ def pause_menu(screen, Daydream, fase_numero):
         screen.blit(titulo_text, titulo_rect)
 
         # Nome da fase (ajuste a posição se quiser mais pra baixo)
-        fase_text = fase_font.render(nome_fase, True, (200, 200, 200))
+        fase_text = fase_font.render(nome_fase, True, (224, 224, 224))
         fase_rect = fase_text.get_rect(center=(width // 2, 280))
         screen.blit(fase_text, fase_rect)
 

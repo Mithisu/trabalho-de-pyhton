@@ -179,7 +179,7 @@ def fase5():
             tela.blit(texto_porta, (porta_rect_tela.x + 5, porta_rect_tela.y + 35))
 
             if jogador.rect.colliderect(porta):
-                resultado = tela_final(tela, pixel_font)
+                resultado = tela_final(tela)
                 return resultado
 
         # Novo: exibe vidas e pontos
