@@ -75,10 +75,11 @@ def main_menu():
                 for text, rect in buttons.items():
                     if rect.collidepoint(event.pos):  # Verifica se clicou em um botão
                         if text == "Start":
-                            import fase1 # Importa o módulo da fase (deve existir)
-                            fase1.fase1()  # Chama a função da fase
+                            import fase5 # Importa o módulo da fase (deve existir)
+                            fase5.fase5()  # Chama a função da fase
                         elif text == "Credits":
-                            print("Feito por: Equipe EduPlay")  # Mostra os créditos no terminal
+                            import tela_credito
+                            tela_credito.tela_creditos(screen)  # Mostra os créditos no terminal
                         elif text == "Exit":
                             pygame.quit()
                             sys.exit()
