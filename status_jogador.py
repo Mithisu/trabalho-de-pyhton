@@ -45,7 +45,7 @@ class StatusJogador:
         # - pos_pontos: Posição onde será desenhada a pontuação.
         # - pos_vidas: Posição onde serão desenhadas as vidas.
 
-        texto_pontos = fonte.render(f"Pontos: {self.pontos}", True, (255, 255, 255))  # Texto branco para os pontos.
+        texto_pontos = fonte.render(f"Pontos: {self.pontos}", True, (100, 100, 100))  # Texto branco para os pontos.
         texto_vidas = fonte.render(f"Vidas: {self.vidas}", True, (255, 0, 0))  # Texto vermelho para as vidas.
         tela.blit(texto_pontos, pos_pontos)  # Desenha o texto dos pontos na tela.
         tela.blit(texto_vidas, pos_vidas)  # Desenha o texto das vidas na tela.

@@ -2,96 +2,113 @@ import pygame
 import sys
 import random
 from jogador import Jogador
+from pause_menu import pause_menu
+from status_jogador import StatusJogador
+from game_over import game_over
 from fase5 import fase5
-from pause_menu import pause_menu 
-from game_over import game_over 
-from status_jogador import StatusJogador  # Importa a classe de status
 
-# Função que gera uma equação de 1º grau no formato "ax + b = resultado"
 def gerar_equacao_1_grau():
-    a = random.randint(1, 10)  # Coeficiente a entre 1 e 10
-    b = random.randint(1, 20)  # Coeficiente b entre 1 e 20
-    x = random.randint(1, 10)  # Valor de x entre 1 e 10
-    resultado = a * x + b      # Resultado da equação
-    pergunta = f"{a}x + {b} = {resultado}"  # Formatação da equação
-    resposta = x               # Resposta correta para a equação
+    a = random.randint(1, 10)
+    b = random.randint(1, 20)
+    x = random.randint(1, 10)
+    resultado = a * x + b
+    pergunta = f"{a}x + {b} = {resultado}"
+    resposta = x
     return {"pergunta": pergunta, "resposta": resposta}
 
-# Função principal da fase 4
+class MiniMapaF4:
+    def __init__(self, world_width, world_height, pos=(1060, 10), size=(200, 112)):
+        self.world_width = world_width
+        self.world_height = world_height
+        self.pos = pos
+        self.width, self.height = size
+        self.escala_x = self.width / self.world_width
+        self.escala_y = self.height / self.world_height
+
+    def converter_para_minimapa(self, rect):
+        return pygame.Rect(
+            self.pos[0] + int(rect.x * self.escala_x),
+            self.pos[1] + int(rect.y * self.escala_y),
+            max(2, int(rect.width * self.escala_x)),
+            max(2, int(rect.height * self.escala_y))
+        )
+
+    def desenhar(self, tela, jogador_rect, equacoes, respostas, porta, cor_eq=(255, 100, 100), porta_ativa=True):
+        pygame.draw.rect(tela, (50, 50, 50), (self.pos[0] - 2, self.pos[1] - 2, self.width + 4, self.height + 4))
+        pygame.draw.rect(tela, (20, 20, 20), (self.pos[0], self.pos[1], self.width, self.height))
+
+        pygame.draw.rect(tela, (0, 255, 255), self.converter_para_minimapa(jogador_rect))
+
+        for eq in equacoes:
+            pygame.draw.rect(tela, cor_eq, self.converter_para_minimapa(eq["rect"]))
+
+        for resp in respostas:
+            pygame.draw.rect(tela, (255, 255, 0), self.converter_para_minimapa(resp["rect"]))
+
+        if porta_ativa:
+            pygame.draw.rect(tela, (0, 0, 255), self.converter_para_minimapa(porta))
+
 def fase4():
     pygame.init()
-    tela = pygame.display.set_mode((1280, 720))  # Definindo a tela do jogo com resolução 1280x720
+    tela = pygame.display.set_mode((1280, 720))
     pygame.display.set_caption("Missão: Código Secreto - Fase 4")
 
     try:
-        pixel_font = pygame.font.Font("assets/fonts/pixel_font.ttf", 32)  # Tentativa de carregar uma fonte pixelada
+        pixel_font = pygame.font.Font("assets/fonts/pixel_font.ttf", 32)
     except:
-        pixel_font = pygame.font.SysFont("Courier", 32)  # Se falhar, usa a fonte padrão Courier
+        pixel_font = pygame.font.SysFont("Courier", 32)
 
-    WORLD_WIDTH, WORLD_HEIGHT = 2560, 1440  # Dimensões do mundo
+    WORLD_WIDTH, WORLD_HEIGHT = 2560, 1440
+    minimapa = MiniMapaF4(WORLD_WIDTH, WORLD_HEIGHT)
 
     jogador = Jogador(WORLD_WIDTH, WORLD_HEIGHT)
-    jogador_carregando = None   # Variável que armazena o item que o jogador está carregando
-
-    # Inicializa o status do jogador (vidas e pontos)
     status = StatusJogador()
+    jogador_carregando = None
 
-    equacao = gerar_equacao_1_grau()  # Gerar uma equação
-    equacao["rect"] = pygame.Rect(random.randint(100, WORLD_WIDTH - 100),
-                                  random.randint(100, WORLD_HEIGHT - 100), 300, 60)  # Definir a área da equação na tela
-    equacao["resolvida"] = False  # A equação ainda não foi resolvida
+    porta = pygame.Rect(2400, 1300, 100, 100)
+    porta_ativa = False
 
-    # Respostas possíveis (uma correta e outras erradas)
-    respostas = [{
-        "valor": equacao["resposta"],
-        "rect": pygame.Rect(random.randint(100, WORLD_WIDTH - 100),
-                            random.randint(100, WORLD_HEIGHT - 100), 50, 50)
+    # Criar equação com retângulo
+    eq = gerar_equacao_1_grau()
+    equacoes = [{
+        "texto": eq["pergunta"],
+        "resposta": eq["resposta"],
+        "rect": pygame.Rect(500, 300, 300, 60),
+        "resolvida": False
     }]
 
-    # Gerar alternativas erradas
-    alternativas_erradas = set()
-    while len(alternativas_erradas) < 3:
-        alt = random.randint(0, 20)
-        if alt != equacao["resposta"]:
-            alternativas_erradas.add(alt)
-
-    # Adicionar as alternativas erradas à lista de respostas
-    for alt in alternativas_erradas:
+    # Criar respostas
+    respostas = []
+    for i in range(4):
+        valor = eq["resposta"] if i == 0 else random.randint(1, 20)
         respostas.append({
-            "valor": alt,
-            "rect": pygame.Rect(random.randint(100, WORLD_WIDTH - 100),
-                                random.randint(100, WORLD_HEIGHT - 100), 50, 50)
+            "valor": valor,
+            "rect": pygame.Rect(random.randint(100, WORLD_WIDTH - 100), random.randint(100, WORLD_HEIGHT - 100), 50, 50)
         })
 
-    porta = pygame.Rect(2400, 1200, 100, 100)  # Definir a posição e tamanho da porta de saída
-    porta_ativa = False  # Inicialmente, a porta não está ativa
-    pontos = 0  # Inicializa os pontos
-    clock = pygame.time.Clock()  # Controlar a taxa de atualização do jogo
+    clock = pygame.time.Clock()
 
     while True:
-        tela.fill((20, 20, 20))  # Preencher a tela com uma cor de fundo escura
+        tela.fill((255, 255, 255))
 
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:  # Se o jogador fechar a janela
+            if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                # Se pressionar a tecla ESC, abre o menu de pausa
-                fase_atual = 4
-                acao_pause = pause_menu(tela, pixel_font, fase_atual)
-                if acao_pause == "menu":
-                    return "menu"  # Sai da fase para voltar ao menu principal
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    acao = pause_menu(tela, pixel_font, 4)
+                    if acao == "menu":
+                        return "menu"
 
-        keys = pygame.key.get_pressed()  # Obtém os teclados pressionados
-        jogador.update(keys, WORLD_WIDTH, WORLD_HEIGHT)  # Atualiza o jogador
+        keys = pygame.key.get_pressed()
+        jogador.update(keys, WORLD_WIDTH, WORLD_HEIGHT)
+        coletar, dropar = jogador.checar_interacoes(keys)
 
-        coletar, dropar = jogador.checar_interacoes(keys)   # Checa se o jogador está coletando ou dropando um item
-
-        # Movimentação da tela (câmera segue o jogador)
         offset_x = jogador.rect.x - 1280 // 2 + jogador.rect.width // 2
         offset_y = jogador.rect.y - 720 // 2 + jogador.rect.height // 2
 
-        # Verifica se o jogador está coletando um item de resposta
+        # --- Coleta de item ---
         if jogador_carregando is None:
             for resposta in respostas:
                 if jogador.hitbox.colliderect(resposta["rect"]) and coletar:
@@ -99,40 +116,38 @@ def fase4():
                     respostas.remove(resposta)
                     break
 
-        # Se o jogador estiver carregando um item e pressionar a tecla para dropar
+        # --- Drop do item ---
         if jogador_carregando and dropar:
             jogador_carregando["rect"].x = jogador.rect.x + jogador.rect.width // 2 - jogador_carregando["rect"].width // 2
             jogador_carregando["rect"].y = jogador.rect.y + jogador.rect.height // 2 - jogador_carregando["rect"].height // 2
             respostas.append(jogador_carregando)
             jogador_carregando = None
 
-        # Verifica se o jogador resolveu a equação
-        if jogador_carregando and not equacao["resolvida"]:
-            if jogador.hitbox.colliderect(equacao["rect"]):
-                if jogador_carregando["valor"] == equacao["resposta"]:
-                    status.ganhar_pontos(100)  # Chama a função para ganhar pontos
-                    equacao["resolvida"] = True
-                    status.ganhar_pontos(900)
-                else:
-                    status.perder_vida()  # <-- Novo: perde vida ao errar
-                    if status.game_over():  # <-- Novo: verifica fim de jogo
-                        acao = game_over(tela, pixel_font)
-                        if acao == "reiniciar":
-                            return fase5()
-                        elif acao == "sair":
-                            return "menu" 
-                jogador_carregando = None
+        # --- Verifica se item foi colocado na equação correta ---
+        if jogador_carregando:
+            for eq in equacoes:
+                if jogador.hitbox.colliderect(eq["rect"]) and not eq["resolvida"]:
+                    if jogador_carregando["valor"] == eq["resposta"]:
+                        status.ganhar_pontos(100)
+                        eq["resolvida"] = True
+                        porta_ativa = True
+                    else:
+                        status.perder_vida()
+                        if status.game_over():
+                            return game_over(tela, pixel_font)
+                    jogador_carregando = None
 
-        # Define a cor da equação, dependendo se foi resolvida ou não
-        cor_eq = (0, 255, 0) if equacao["resolvida"] else (255, 100, 100)
-        rect_eq = equacao["rect"].copy()
-        rect_eq.x -= offset_x
-        rect_eq.y -= offset_y
-        pygame.draw.rect(tela, cor_eq, rect_eq)
-        texto_eq = pixel_font.render(equacao["pergunta"], True, (0, 0, 0))
-        tela.blit(texto_eq, (rect_eq.x + 10, rect_eq.y + 15))
+        # --- Desenhar equações ---
+        for eq in equacoes:
+            cor = (0, 255, 0) if eq["resolvida"] else (255, 100, 100)
+            rect = eq["rect"].copy()
+            rect.x -= offset_x
+            rect.y -= offset_y
+            pygame.draw.rect(tela, cor, rect)
+            texto_eq = pixel_font.render(eq["texto"], True, (0, 0, 0))
+            tela.blit(texto_eq, (rect.x + 10, rect.y + 15))
 
-        # Desenha as alternativas de resposta
+        # --- Desenhar respostas ---
         for resposta in respostas:
             rect = resposta["rect"].copy()
             rect.x -= offset_x
@@ -141,36 +156,37 @@ def fase4():
             texto = pixel_font.render(str(resposta["valor"]), True, (0, 0, 0))
             tela.blit(texto, (rect.x + 5, rect.y + 5))
 
-        # Desenha o jogador na tela
+        # --- Desenhar jogador ---
         jogador_tela_rect = jogador.rect.copy()
         jogador_tela_rect.x -= offset_x
-        jogador_tela_rect.y -= offset_y  # Desenha o jogador
-        # Desenha o jogador na tela
-        tela.blit(jogador.image, jogador_tela_rect) 
+        jogador_tela_rect.y -= offset_y
+        tela.blit(jogador.image, jogador_tela_rect)
 
-        # Se o jogador estiver carregando um item, exibe o nome do item
+        # Mostrar item carregado
         if jogador_carregando:
-            texto_item = pixel_font.render(f"Carregando: {jogador_carregando['valor']}", True, (255, 255, 255))
+            texto_item = pixel_font.render(
+                f"Carregando: {round(jogador_carregando['valor'], 2)}",
+                True, (255, 255, 255)
+            )
             tela.blit(texto_item, (20, 660))
 
-        # Se a equação foi resolvida, ativa a porta
-        if equacao["resolvida"]:
-            porta_ativa = True
-
-        # Se a porta estiver ativa, desenha e verifica se o jogador a tocou
+        # --- Desenhar porta ---
         if porta_ativa:
             porta_rect_tela = porta.copy()
             porta_rect_tela.x -= offset_x
             porta_rect_tela.y -= offset_y
             pygame.draw.rect(tela, (0, 0, 255), porta_rect_tela)
-            texto_porta = pixel_font.render("Ir para próxima fase", True, (0, 0, 0))
-            tela.blit(texto_porta, (porta_rect_tela.x + 5, porta_rect_tela.y + 35))
+            texto_porta = pixel_font.render("Ir para fase 5", True, (255, 255, 255))
+            tela.blit(texto_porta, (porta_rect_tela.x, porta_rect_tela.y - 30))
 
-            if porta_ativa and jogador.rect.colliderect(porta):
-                fase5()  # Chama a próxima fase (fase 5)
+        # Avançar para próxima fase
+        if porta_ativa and jogador.rect.colliderect(porta):
+            return fase5()
 
-        # Exibe a pontuação
+        minimapa.desenhar(tela, jogador.rect, equacoes, respostas, porta, porta_ativa=porta_ativa)
         status.renderizar(tela, pixel_font)
 
-        pygame.display.flip()  # Atualiza a tela
-        clock.tick(60)  # Controla a taxa de quadros por segundo (FPS)
+        pygame.display.flip()
+        clock.tick(60)
+
+
