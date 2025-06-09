@@ -18,6 +18,7 @@ def tela_final(screen):
         texto_henrique = texto_font.render("Henrique", True, (255, 255, 255))
         texto_weberson = texto_font.render("Weberson", True, (255, 255, 255))
         texto_higor = texto_font.render("Higor", True, (255, 255, 255))
+        texto_renato = texto_font.render("Renato", True, (255, 255, 255))
         texto_obg = texto_font.render("Obrigado por jogar!", True, (255, 255, 255))
 
         # Título
@@ -32,6 +33,7 @@ def tela_final(screen):
         screen.blit(texto_henrique, (screen.get_width() // 2 - texto_henrique.get_width() // 2, y_base + espacamento * 2))
         screen.blit(texto_weberson, (screen.get_width() // 2 - texto_weberson.get_width() // 2, y_base + espacamento * 3))
         screen.blit(texto_higor, (screen.get_width() // 2 - texto_higor.get_width() // 2, y_base + espacamento * 4))
+        screen.blit(texto_renato, (screen.get_width() // 2 - texto_renato.get_width() // 2, y_base + espacamento * 5))
 
         # Obrigado (mais pra cima)
         screen.blit(texto_obg, (screen.get_width() // 2 - texto_obg.get_width() // 2, 540))

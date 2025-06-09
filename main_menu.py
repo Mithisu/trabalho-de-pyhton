@@ -54,7 +54,7 @@ def draw_menu():
         # Desenha o texto alinhado à esquerda dentro do botão
         screen.blit(label, (
             rect.x,
-            rect.y + (rect.height - label.get_height()) // 2  # Centraliza verticalmente
+            rect.y + (rect.height - label.get_height()) // 1  # Centraliza verticalmente
         ))
 
     pygame.display.flip()  # Atualiza a tela com o novo conteúdo
@@ -75,8 +75,8 @@ def main_menu():
                 for text, rect in buttons.items():
                     if rect.collidepoint(event.pos):  # Verifica se clicou em um botão
                         if text == "Start":
-                            import fase5 # Importa o módulo da fase (deve existir)
-                            fase5.fase5()  # Chama a função da fase
+                            import fase1 # Importa o módulo da fase (deve existir)
+                            fase1.fase1()  # Chama a função da fase
                         elif text == "Credits":
                             import tela_credito
                             tela_credito.tela_creditos(screen)  # Mostra os créditos no terminal

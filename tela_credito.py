@@ -17,6 +17,7 @@ def tela_creditos(screen):
         nome2 = texto_font.render("Henrique", True, (255, 255, 255))
         nome3 = texto_font.render("Weberson", True, (255, 255, 255))
         nome4 = texto_font.render("Higor", True, (255, 255, 255))
+        nome5 = texto_font.render("Renato", True, (255, 255, 255))
         info = texto_font.render("Presione ESC para sair", True, (204, 24, 24))
 
         # Posicionamento centralizado
@@ -30,6 +31,7 @@ def tela_creditos(screen):
         screen.blit(nome2, (center_x - nome2.get_width() // 2, y_base + espacamento * 2))
         screen.blit(nome3, (center_x - nome3.get_width() // 2, y_base + espacamento * 3))
         screen.blit(nome4, (center_x - nome4.get_width() // 2, y_base + espacamento * 4))
+        screen.blit(nome5, (center_x - nome5.get_width() // 2, y_base + espacamento * 5))
         screen.blit(info, (center_x - info.get_width() // 2, y_base + espacamento * 7))
 
         pygame.display.flip()
