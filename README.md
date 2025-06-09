@@ -1,17 +1,20 @@
 # Missão Código Secreto
-# Projeto feito com a intuição de que as pessoas adquiram o conhecimento de matemática, de forma mais dinâmica e interativa
+Projeto desenvolvido para o ensino de lógica e paradigmas de programação
 
-# crie o venv
+## Como começar
+Para começar a rodar o projeto, crie um venv com o comando:
+```
 python -m venv venv
-
-
-# ative o venv
+```
+Ative o venv:
+```
 venv\Scripts\activate
-
-
-# instale as depêndencias
+```
+Instale as dependências:
+```
 pip install -r requirements.txt
-
-
-# roda o programa
+```
+Rode o programa:
+```
 python main.py
+```
