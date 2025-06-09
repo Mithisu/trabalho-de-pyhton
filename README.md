@@ -1,3 +1,3 @@
-# MISSÃO CÓDIGO SECRETO
+# Missão Código Secreto
 
-# PROJETO FEITO COM A INTUIÇÃO DE QUE AS PESSOAS ADQUIRAM O CONHECIMENTO DE MATEMÁTICA, DE FORMA MAIS DINÂMICA E INTERATIVA
+# Projeto feito com a intuição de que as pessoas adquiram o conhecimento de matemática, de forma mais dinâmica e interativa
