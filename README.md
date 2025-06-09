@@ -1,5 +1,5 @@
 # Missão Código Secreto
-Projeto desenvolvido para o ensino de lógica e paradigmas de programação
+Projeto desenvolvido para que o usuário possa adquirir o conhecimento da matemática de forma mais dinâmica e interativa. 
 
 ## Como começar
 Para começar a rodar o projeto, crie um venv com o comando:
